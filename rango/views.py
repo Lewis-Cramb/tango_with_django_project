@@ -12,4 +12,4 @@ def index(rqst):
     return render(rqst, 'rango/index.html', context=context_dict)
 
 def about(rqst):
-    return HttpResponse('Rango says here is the about page. <a href="/rango/">Index</a>')
+    return render(rqst, 'rango/about.html')
