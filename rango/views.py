@@ -1,6 +1,8 @@
 from django.shortcuts import render
 from django.http import HttpResponse
 from rango.models import Category, Page
+from rango.forms import CategoryForm
+from django.shortcuts import redirect
 
 def index(rqst):
     #loop through cateogries, sorted by likes, and get top 5
@@ -28,3 +30,14 @@ def show_category(rqst,category_name_slug):
         context_dict['pages'] = None
         context_dict['category'] = None
     return render(rqst, 'rango/category.html', context=context_dict)
+
+def add_category(rqst):
+    form = CategoryForm()
+    if rqst.method == "POST":
+        form = CategoryForm(rqst.POST)
+        if form.is_valid():
+            form.save(commit=True)
+            return redirect('/rango/')
+        else:
+            print(form.errors)
+    return render(rqst, 'rango/add_category.html', {'form':form})
