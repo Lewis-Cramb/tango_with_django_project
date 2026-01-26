@@ -4,6 +4,7 @@ from rango.models import Category, Page
 from rango.forms import CategoryForm, PageForm
 from django.shortcuts import redirect
 from django.urls import reverse
+from rango.forms import UserForm, UserProfileForm
 
 def index(rqst):
     #loop through cateogries, sorted by likes, and get top 5
@@ -67,3 +68,27 @@ def add_page(rqst, category_name_slug):
             print(form.errors)
     context_dict = {'form':form, 'category':category}
     return render(rqst, 'rango/add_page.html', context=context_dict)
+
+
+def register(rqst):
+    registered = False
+    if rqst.method == 'POST':
+        user_form = UserForm(rqst.POST)
+        profile_form = UserProfileForm(rqst.POST)
+        if user_form.is_valid() and profile_form.is_valid():
+            user = user_form.save()
+            user.set_password(user.password) #hashes pw
+            user.save()
+            profile = profile_form.save(commit=False)
+            profile.user = user
+            if 'picture' in rqst.FILES:
+                profile.picture = rqst.FILES['picture']
+            profile.save()
+            registered = True
+        else:
+            print(user_form.errors, profile_form.errors)
+    else:
+        user_form = UserForm()
+        profile_form = UserProfileForm()
+    
+    return render(rqst, 'rango/register.html', context={'user_form':user_form,'profile_form':profile_form,'registered':registered})
