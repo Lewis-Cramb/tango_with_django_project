@@ -5,6 +5,7 @@ from rango.forms import CategoryForm, PageForm
 from django.shortcuts import redirect
 from django.urls import reverse
 from rango.forms import UserForm, UserProfileForm
+from django.contrib.auth import authenticate, login
 
 def index(rqst):
     #loop through cateogries, sorted by likes, and get top 5
@@ -92,3 +93,21 @@ def register(rqst):
         profile_form = UserProfileForm()
     
     return render(rqst, 'rango/register.html', context={'user_form':user_form,'profile_form':profile_form,'registered':registered})
+
+
+def user_login(rqst):
+    if rqst.method == 'POST':
+        username = rqst.POST.get('username')
+        password = rqst.POST.get('password')
+        user = authenticate(username=username, password=password)
+        if user:
+            if user.is_active:
+                login(rqst, user)
+                return redirect(reverse('rango:index'))
+            else:
+                return HttpResponse("Your Rango account is disabled.")
+        else:
+            print(f"Invalid login details: {username}, {password}")
+            return HttpResponse("Invalid login details supplied.")
+    else:
+        return render(rqst, 'rango/login.html')
