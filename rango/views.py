@@ -6,6 +6,7 @@ from django.shortcuts import redirect
 from django.urls import reverse
 from rango.forms import UserForm, UserProfileForm
 from django.contrib.auth import authenticate, login
+from django.contrib.auth.decorators import login_required
 
 def index(rqst):
     #loop through cateogries, sorted by likes, and get top 5
@@ -111,3 +112,8 @@ def user_login(rqst):
             return HttpResponse("Invalid login details supplied.")
     else:
         return render(rqst, 'rango/login.html')
+    
+
+@login_required()
+def restricted(rqst):
+    return HttpResponse("Since you're logged in, you can see this text!")
