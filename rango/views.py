@@ -18,9 +18,14 @@ def index(rqst):
     context_dict['categories'] = category_list
     context_dict['pages'] = page_list
     
+    rqst.session.set_test_cookie()
+
     return render(rqst, 'rango/index.html', context=context_dict)
 
 def about(rqst):
+    if rqst.session.test_cookie_worked():
+        print("TEST COOKIE WORKED!")
+        rqst.session.delete_test_cookie()
     return render(rqst, 'rango/about.html')
 
 def show_category(rqst,category_name_slug):
