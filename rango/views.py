@@ -9,17 +9,23 @@ from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
 from datetime import datetime
 
-def visitor_cookie_handler(rqst, response):
-    visits = int(rqst.COOKIES.get('visits','1'))
-    last_visit_cookie = rqst.COOKIES.get('last_visit',str(datetime.now()))
+def get_server_side_cookie(rqst, cookie, default_val=None):
+    val = rqst.session.get(cookie)
+    if not val:
+        val = default_val
+    return val
+
+def visitor_cookie_handler(rqst):
+    visits = int(get_server_side_cookie(rqst, 'visits','1'))
+    last_visit_cookie = get_server_side_cookie(rqst,'last_visit',str(datetime.now()))
     last_visit_time = datetime.strptime(last_visit_cookie[:-7],'%Y-%m-%d %H:%M:%S')
 
     if (datetime.now() - last_visit_time).days > 0:
         visits += 1
-        response.set_cookie('last_visit',str(datetime.now()))
+        rqst.session['last_visit'] = str(datetime.now())
     else:
-        response.set_cookie('last_visit', last_visit_cookie)
-    response.set_cookie('visits',visits)
+        rqst.session['last_visit'] = last_visit_cookie
+    rqst.session['visits'] = visits
 
 def index(rqst):
     #loop through cateogries, sorted by likes, and get top 5
@@ -31,9 +37,10 @@ def index(rqst):
     context_dict['categories'] = category_list
     context_dict['pages'] = page_list
 
-    response = render(rqst, 'rango/index.html', context=context_dict)
-    visitor_cookie_handler(rqst,response)
-    return response
+    visitor_cookie_handler(rqst)
+    context_dict['visits'] = rqst.session['visits']
+
+    return render(rqst, 'rango/index.html', context=context_dict)
 
 def about(rqst):
     return render(rqst, 'rango/about.html')
