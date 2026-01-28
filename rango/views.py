@@ -7,6 +7,19 @@ from django.urls import reverse
 from rango.forms import UserForm, UserProfileForm
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
+from datetime import datetime
+
+def visitor_cookie_handler(rqst, response):
+    visits = int(rqst.COOKIES.get('visits','1'))
+    last_visit_cookie = rqst.COOKIES.get('last_visit',str(datetime.now()))
+    last_visit_time = datetime.strptime(last_visit_cookie[:-7],'%Y-%m-%d %H:%M:%S')
+
+    if (datetime.now() - last_visit_time).days > 0:
+        visits += 1
+        response.set_cookie('last_visit',str(datetime.now()))
+    else:
+        response.set_cookie('last_visit', last_visit_cookie)
+    response.set_cookie('visits',visits)
 
 def index(rqst):
     #loop through cateogries, sorted by likes, and get top 5
@@ -17,15 +30,12 @@ def index(rqst):
     context_dict['boldmessage'] = 'Crunchy, creamy, cookie, candy, cupcake!'
     context_dict['categories'] = category_list
     context_dict['pages'] = page_list
-    
-    rqst.session.set_test_cookie()
 
-    return render(rqst, 'rango/index.html', context=context_dict)
+    response = render(rqst, 'rango/index.html', context=context_dict)
+    visitor_cookie_handler(rqst,response)
+    return response
 
 def about(rqst):
-    if rqst.session.test_cookie_worked():
-        print("TEST COOKIE WORKED!")
-        rqst.session.delete_test_cookie()
     return render(rqst, 'rango/about.html')
 
 def show_category(rqst,category_name_slug):
