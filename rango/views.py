@@ -38,12 +38,14 @@ def index(rqst):
     context_dict['pages'] = page_list
 
     visitor_cookie_handler(rqst)
-    context_dict['visits'] = rqst.session['visits']
 
     return render(rqst, 'rango/index.html', context=context_dict)
 
 def about(rqst):
-    return render(rqst, 'rango/about.html')
+    visitor_cookie_handler(rqst)
+    context_dict = {}
+    context_dict['visits'] = rqst.session['visits']
+    return render(rqst, 'rango/about.html', context=context_dict)
 
 def show_category(rqst,category_name_slug):
     context_dict = {}
